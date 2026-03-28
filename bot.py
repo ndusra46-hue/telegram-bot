@@ -70,3 +70,4 @@ threading.Thread(target=check_inactive, args=(app,)).start()
 
 # ▶️ Run bot
 app.run_polling()
+# redeploy
