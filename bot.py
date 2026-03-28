@@ -47,7 +47,7 @@ def check_inactive(app):
                 
                 try:
                     app.bot.send_message(
-                        chat_id=-100XXXXXXXXXX,  # 👈 yaha apna GROUP ID daal
+                        chat_id=update.message.chat_id,,  # 👈 yaha apna GROUP ID daal
                         text=msg
                     )
                 except Exception as e:
