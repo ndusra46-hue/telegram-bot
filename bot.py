@@ -1,39 +1,72 @@
 import os
 import time
+import threading
 import random
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 
-TOKEN = os.getenv("TOKEN")
+# 🔑 Token (Railway se uth raha hai)
+TOKEN = os.environ.get("BOT_TOKEN")
 
+# ⏱ Last message time track
 last_message_time = time.time()
 
-msgs = [
-    "Bhai sab kidhar ho 😴",
-    "Group dead ho gaya kya 💀",
-    "Koi baat karo yaar 😅",
-    "Hello hello 👀"
-]
-
-async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# 📩 Jab bhi koi message aaye
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global last_message_time
     last_message_time = time.time()
+    
+    # 👇 Group ID print karega (logs me)
+    print("CHAT ID:", update.message.chat_id)
+    
+    # 👇 Test reply (confirm bot chal raha hai)
+    await update.message.reply_text("ID mil gaya check logs 😎")
 
-async def check_inactivity(context: ContextTypes.DEFAULT_TYPE):
+# 🤖 Inactive hone pe message bhejne wala function
+def check_inactive(app):
     global last_message_time
-    now = time.time()
+    
+    messages = [
+        "Busy hai kya sab 😀",
+        "Bhai bat karo na mujse koi baat nahi kr rha 🥺",
+        "Or bhai aaj kya kiya kuch kam kiya ya telegram me he hi hello krta rha 😂",
+        "Hello hello koi zinda hai ya sab ghost ban gaye 👻",
+        "Group me itna sannata kyu hai bhai 😶",
+        "Koi ek hi hello bol do yaar 😅",
+        "Lagta hai sab busy ho gaye... ya ignore kar rahe ho 😏",
+        "Koi topic start karo bhai warna main hi karta hu 😂",
+        "Aaj ka din kaisa gaya sabka? 🤔",
+        "Koi interesting baat batao yaar bore ho raha hu 😴"
+    ]
+    
+    while True:
+        if time.time() - last_message_time > 300:  # 5 min silence
+            
+            for i in range(3):  # 3 messages bhejega
+                msg = random.choice(messages)
+                
+                try:
+                    app.bot.send_message(
+                        chat_id=-100XXXXXXXXXX,  # 👈 yaha apna GROUP ID daal
+                        text=msg
+                    )
+                except Exception as e:
+                    print("Error:", e)
+                
+                time.sleep(60)  # 1 min gap
+            
+            last_message_time = time.time()
+        
+        time.sleep(30)
 
-    if now - last_message_time > 600:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=random.choice(msgs)
-        )
-        last_message_time = now
-
+# 🚀 Bot start
 app = ApplicationBuilder().token(TOKEN).build()
 
-app.add_handler(MessageHandler(filters.TEXT, track_messages))
+# 📩 Handler add
+app.add_handler(MessageHandler(filters.ALL, handle_message))
 
-app.job_queue.run_repeating(check_inactivity, interval=300)
+# 🔄 Background thread
+threading.Thread(target=check_inactive, args=(app,)).start()
 
+# ▶️ Run bot
 app.run_polling()
